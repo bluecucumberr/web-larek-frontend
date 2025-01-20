@@ -1,14 +1,19 @@
 export interface IProductItem {
     id: string;
-    description?: string;
-    img?: string;
+    description: string;
+    img: string;
     title: string;
-    category?: string;
+    category: string;
     price: number | null;   
 }
 
+export interface IOrderResult {
+    id: string;
+    total: number;
+}
+
 export interface IOrder {
-    paymentMethod: 'Онлайн' | 'При получении';
+    paymentMethod: 'online' | 'offline';
     deliveryAddress: string;
     customerEmail: string;
     customerPhone: string;

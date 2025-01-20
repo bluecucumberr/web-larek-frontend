@@ -62,8 +62,15 @@ export interface IProductItem {
     price: number | null;   
 }
  ```
+ 
+ ```
+export interface IOrderResult {
+    id: string;
+    total: number;
+}
+ ```
 
-Интерфейс для объекта заказ:
+Интерфейс для формы заказа:
 ```
 export interface IOrder {
     paymentMethod: 'Онлайн' | 'При получении';
@@ -146,22 +153,24 @@ export type IBusketItem = Pick<IProductItem, 'id' | 'title' | 'price'>;
 - order: IOrder | null - объект, описывающий текущий заказ, т.е. данные пользователя
 
 Методы:
-- toggleOrderedProduct(id: string, isIncluded: boolean): void - добавление/удаление товара из корзины
+- addItem(id: string) - добавление товара в корзину
+- removeItem(id: string) - удаление товара из корзины
 - clearBasket(): void - очистка корзины
 - getTotal(): number - расчет стоимости заказа 
-- setCatalog(items: TProductItemCard): void - выводит каталог товаров (тут вопросы)
+- setCatalog(items: TProductItemCard[]): void - устанавливает каталог товаров
 - setPreview(item: IProductItem): void - устанавливает, какой товар находится в модальном окне предпросмотра
 - setOrderField<T extends keyof IOrder>(field: T, value: - IOrder[T]): void - установка значений данных пользователя
-- checkValidation(): boolean - проверка данных пользователя
+- checkValidationOrder(): boolean - проверка данных пользователя на первом шаге (оплата, адресс)
+- checkValidationContacts(): boolean - проверка данных пользователя на втором шаге (почта, телефон)
 
 ### Класс `ProductItem`
 Отвечает за хранение и логику карточки товара.\
 Поля:
 - id: string - id товара 
-- description?: string - описание товара
-- img?: string - картинка товара
+- description: string - описание товара
+- img: string - картинка товара
 - title: string - название товара
-- category?: string - категория товара
+- category: string - категория товара
 - price: number | null - цена товара
 
 ## Слой представления
@@ -181,21 +190,38 @@ export type IBusketItem = Pick<IProductItem, 'id' | 'title' | 'price'>;
 - set catalog(items: HTMLElement) 
 
 ### Класс `Card`
-Класс для отображения карточек с товарами, наследуется класса Component.\
-Поля:
+Класс для отображения карточки товара, наследуется от класса Component.\
 _category: HTMLElement
 _title: HTMLElement
 _image: HTMLImageElement
 _price: HTMLElement
 
-- setData(cardData: TProductItemCard): void - заполняет атрибуты элементов карточки данными
-- render(): HTMLElement - метод возвращает полностью заполненную карточку с установленными слушателями
-- геттер id возвращает уникальный id карточки
+- set id(value: string)
+- get id()
+- set title(value: string)
+- set category(value: string)
+- set image(value: string)
+- set price(value: number | null)
+- render(TProductItemCard): HTMLElement
 
-#### Класс `CardsContainer`
-Отвечает за отображение каталога с карточками на главной странице. В конструктор принимает контейнер, в котором размещаются карточки.
-- сеттер `container` для отображения каталога. 
+### Класс `CardPreview`
+Класс для отображения описания товара на превью, наследуется от класса `Card`, позволяет добавить товар в корзину.
+- _description: HTMLElement
+- _addButton: HTMLButtonElement - кнопка в корзину
 
+- isAvailable(data:IProductItem):boolean - возможность добавить товар в корзину
+- render(IProductItem): HTMLElement
+
+### Класс `CardInBasket`
+Класс для отображения товара в корзине.
+- basketItem: HTMLElement
+- index: HTMLElement
+- title: HTMLElement
+- price: HTMLElement
+- deteleButton: HTMLButtonElement
+
+- setPrice(value: number | null): string
+- render(IBusketItem): HTMLElement
 
 ### Класс `Modal` 
 Отвечает за отображение модальных окон.\
@@ -210,7 +236,7 @@ constructor(container: HTMLElement, protected events: IEvents) Конструк�
 - set content(value: HTMLElement) - устанавливает контент конкретного модального окна в шаблон
 - open() - открывает модальное окно
 - close() - закрывает модальное окно
-- render(data: HTMLElement): HTMLElement - рендерит содержимое модального окна
+- render(): HTMLElement 
 
 
 ### Класс `Busket`
@@ -218,7 +244,6 @@ constructor(container: HTMLElement, protected events: IEvents) Конструк�
 Поля:
 - _items: HTMLElement[] - список товаров
 - _total: HTMLElement - общая сумма покупки
-- _deleteButton: HTMLElement - удаление товара из корзины
 - _orderButton: HTMLElement - кнопка для оформления заказа
 
 constructor(container: HTMLElement, protected events: IEvents) Конструктор принимает контейнер в виде HTML элемента и экземпляр класса `EventEmitter` для возможности инициализации событий.\
@@ -232,11 +257,17 @@ constructor(container: HTMLElement, protected events: IEvents) Конструк�
 - _paymentMethodCard
 - _paymentMethodCash
 - _adress
+- submitButton
+- formErrors
+- set validation
 
 ### Класс `ContactForm`
 Класс для отображения формы ввода почты и телефона
 - _email
 - _phone
+- submitButton
+- formErrors
+- set validation
 
 ### Класс `SuccessOrder`
 Класс для отображения модального окна, сообщающего об успешном оформлении заказа
