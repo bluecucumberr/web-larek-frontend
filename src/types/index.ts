@@ -1,64 +1,44 @@
-// Данные о товаре, получаемые с сервера
 export interface IProductItem {
     id: string;
     description: string;
-    image: string;
+    img: string;
     title: string;
     category: string;
     price: number | null;   
 }
 
-// Интерфейс для работы с товаром
-export interface IProductData {
-    catalog: IProductItem[];
-    preview: string | null;
-
-    getItem(itemId: string): IProductItem | null;
-}
-
-// Данные пользователя
-export interface IOrderUserInfo {
-    payment: string;
-    email: string;
-    phone: string;
-    address: string;
-}
-
-// Интерфейс для работы с основными функциями магазина
-export interface IOrderData {
-    items: string[];
-    orderInfo: IOrderUserInfo | null;
-
-    addItemToCart(id: string): void;
-    removeItemFromCart(id: string): void;
-    getItemCount(): number;
-    clearCart(): void;
-    calculateTotal(catalog: IProductItem[]): number;
-
-    checkOrderField(): boolean;
-    checkContsctsField(): boolean;
-    setFormField(field: keyof IOrderUserInfo, value: string): void;
-  
-    getOrderInfo(catalog: IProductItem[]): IOrder;
-}
-
-// Данные о заказе, отправляемые на сервер
-export interface IOrder extends IOrderUserInfo {
-    total: number;
-    items: string[];
-}
-
-// Данные оформленного заказа, возвращаемые сервером
 export interface IOrderResult {
     id: string;
     total: number;
 }
 
-// Данные ошибки
-export type TFormErrors = Partial<Record<keyof IOrderUserInfo, string>>;
+export interface IOrder {
+    paymentMethod: 'online' | 'offline';
+    deliveryAddress: string;
+    customerEmail: string;
+    customerPhone: string;
+}
 
-// Данные товара в карточке в каталоге на главной странице
-export type TProductItemCard = Pick<IProductItem, 'id' | 'category' | 'title' | 'image' | 'price'>;
+export interface IAppState {
+    catalog: TProductItemCard[];
+    basket: string[];
+    preview: string | null;
+    order: IOrder | null;
 
-// Данные товара, используемые в корзине
+    toggleOrderedProduct(id: string, isIncluded: boolean): void;
+    clearBasket(): void;
+    getTotal(): number;
+    setCatalog(items: TProductItemCard): void;
+    setPreview(item: IProductItem): void;
+    setOrderField<T extends keyof IOrder>(field: T, value: IOrder[T]): void;
+    checkValidation(): boolean;
+}
+
+export type TProductItemCard = Pick<IProductItem, 'id' | 'category' | 'title' | 'img' | 'price'>;
+
+export type IOrderContactForm = Pick<IOrder, 'customerEmail' | 'customerPhone'>;
+export type IOrderPayAndAdressForm = Pick<IOrder, 'paymentMethod' | 'deliveryAddress'>;
+ 
+export type FormErrors = Partial<Record<keyof IOrder, string>>;
+
 export type IBusketItem = Pick<IProductItem, 'id' | 'title' | 'price'>;
