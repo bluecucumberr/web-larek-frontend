@@ -161,7 +161,7 @@ protected _preview: string | null - id товара, выбранного для
 - getItem(itemId: string): IProductItem | null - возвращает объект товара по его id
 
 
-### Класс `OrderData`
+### Класс `AppData`
 Отвечает за хранение данных пользователя, массива id заказанных товаров и за логику работы с ними. Наследуется от класса Model.\
 
 Поля:
@@ -185,6 +185,8 @@ orderErrors: TFormErrors = {} - ошибки
 - checkOrderField(): boolean - проверяет поля формы заказа
 - checkContsctsField(): boolean - проверяет поля формы контакты
 - getOrderInfo(catalog: IProductItem[]): IOrder  - возвращает информацию о заказе
+- removePricelessProductFromCart(catalog: IProductItem[]): void - удаляет бесценный товар из корзины
+- checkBasket(catalog: IProductItem[]): boolean - проверяет, что в корзине есть товары
 
 ## Слой представления
 

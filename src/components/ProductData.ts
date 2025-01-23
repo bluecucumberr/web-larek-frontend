@@ -2,7 +2,7 @@ import { IProductItem, IProductData } from "../types"
 import { Model } from "./base/Model";
 
 export class ProductData extends Model<IProductData> {
-    protected _catalog: IProductItem[];
+    protected _catalog: IProductItem[] = [];
     protected _preview: string | null;
 
     set catalog(items: IProductItem[]) {

@@ -1,8 +1,8 @@
-import { TFormErrors, IOrderUserInfo, IOrderData, IProductItem, IOrder } from "../types"
+import { TFormErrors, IOrderUserInfo, IAppData, IProductItem, IOrder } from "../types"
 import { Model } from "./base/Model";
 
-export class OrderData extends Model<IOrderData> {
-    protected _items: string[];
+export class AppData extends Model<IAppData> {
+    protected _items: string[] = [];
     protected _orderInfo: IOrderUserInfo = {
         payment: '',
         email: '',
@@ -41,6 +41,12 @@ export class OrderData extends Model<IOrderData> {
     }
 
     calculateTotal(catalog: IProductItem[]): number {
+
+        if (!Array.isArray(catalog)) {
+            console.error('catalog должен быть массивом', catalog);
+            return 0;
+        }
+
         return this._items.reduce((total, itemId) => {
             const product = catalog.find(item => item.id === itemId);
             return total + (product?.price || 0); 
@@ -87,6 +93,9 @@ export class OrderData extends Model<IOrderData> {
     }
     
     getOrderInfo(catalog: IProductItem[]): IOrder {
+        if (!Array.isArray(catalog)) {
+            console.error('catalog должен быть массивом', catalog);
+        }
         return { 
             payment: this.orderInfo.payment,
             email: this.orderInfo.email,
@@ -95,5 +104,26 @@ export class OrderData extends Model<IOrderData> {
             total: this.calculateTotal(catalog),
             items: this._items
         }
+    }
+
+    removePricelessProductFromCart(catalog: IProductItem[]):void {
+        const productsToRemove = this._items.filter(itemId => {
+            const product = catalog.find(product => product.id === itemId);
+            return product && product.price === null;
+        });
+    
+        if (productsToRemove.length > 0) {
+            productsToRemove.forEach(itemId => {
+                this.removeItemFromCart(itemId); 
+            });
+        }
+    }
+
+    checkBasket(catalog: IProductItem[]): boolean {
+        const itemsInCart = this._items.map(itemId => 
+            catalog.find(product => product.id === itemId)
+        ).filter(product => product !== undefined); 
+        const total = this.getOrderInfo(itemsInCart).total;
+        return !(total === 0 || total === null);
     }
 }

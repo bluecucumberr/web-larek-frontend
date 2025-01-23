@@ -25,7 +25,7 @@ export interface IOrderUserInfo {
 }
 
 // Интерфейс для работы с основными функциями магазина
-export interface IOrderData {
+export interface IAppData {
     items: string[];
     orderInfo: IOrderUserInfo | null;
 
@@ -40,6 +40,9 @@ export interface IOrderData {
     setFormField(field: keyof IOrderUserInfo, value: string): void;
   
     getOrderInfo(catalog: IProductItem[]): IOrder;
+
+    removePricelessProductFromCart(catalog: IProductItem[]): void
+    checkBasket(catalog: IProductItem[]): boolean
 }
 
 // Данные о заказе, отправляемые на сервер

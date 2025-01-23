@@ -1,9 +1,15 @@
 import { EventEmitter } from './components/base/events';
 import './scss/styles.scss';
 import { ProductData } from './components/ProductData';
-import { OrderData } from './components/OrderData';
+import { AppData } from './components/OrderData';
+import { LarekAPI } from './components/LarekAPI';
+import { API_URL, CDN_URL, settings } from './utils/constants';
 
 const events = new EventEmitter();
+
+const api = new LarekAPI(CDN_URL, API_URL);
+const productData = new ProductData({}, events);
+const appData = new AppData({}, events);
 
 const testCatalog = {
     "total": 10,
@@ -91,36 +97,42 @@ const testCatalog = {
     ]
 }
 
-const productData = new ProductData({}, events);
-productData.catalog = testCatalog.items;
-// console.log("Каталог: ", productData.catalog);
+api.getProductList()
+    .then((products) => {
+        productData.catalog = products;
+        console.log(productData.catalog);
 
-const testItem = productData.getItem('48e86fc0-ca99-4e13-b164-b98d65928b53');
-// console.log("Выбранный товар: ", testItem);
+        appData.removePricelessProductFromCart(productData.catalog);
+        if (!appData.checkBasket(productData.catalog)) {
+            console.error('Корзина пуста или сумма товаров равна 0.');
+            return;
+        }
+        
+        api.orderProducts(appData.getOrderInfo(productData.catalog))
+        
+            .then((result) => {
+                console.log('Заказ успешно оформлен:', result);
+    
+            appData.clearCart();
+            console.log('Корзина очищена.');
 
-// productData.preview = testItem.id;
-// console.log("Товар в превью: ", productData.preview)
-
-const orderData = new OrderData({}, events);
-// console.log('Сейчас товаров в корзине:', orderData.items);
-// orderData.addItemToCart(testItem.id);
-// console.log('Сейчас в корзине: ', orderData.getItemCount(), 'товар: ', orderData.items);
-// orderData.addItemToCart(testCatalog.items[3].id);
-// const total = orderData.calculateTotal(productData.catalog);
-// console.log('Сейчас в корзине: ', orderData.getItemCount(), 'товар: ', orderData.items);
-// console.log('Общая стоимость заказа:', total)
-// orderData.removeItemFromCart(testCatalog.items[3].id);
-// console.log('Сейчас в корзине: ', orderData.getItemCount(), 'товар: ', orderData.items);
-// orderData.clearCart();
-// console.log('Сейчас в корзине: ', orderData.getItemCount(), 'товар: ', orderData.items);
+        })
+        .catch((err) => {
+        console.error('Ошибка при оформлении заказа:', err);
+        });
+       
+    })
+    .catch(err => {
+        console.log(err);
+    });
 
 
-orderData.setFormField('email', 'example@example.com');
-orderData.setFormField('phone', '+1234567890');
+appData.addItemToCart('c101ab44-ed99-4a54-990d-47aa2bb4e7d9');
+appData.addItemToCart('b06cde61-912f-4663-9751-09956c0eed67');
 
-orderData.setFormField('address', '123 Main St');
-orderData.setFormField('payment', 'online');
-console.log(orderData.checkOrderField());
+appData.setFormField('email', 'example@example.com');
+appData.setFormField('phone', '+1234567890');
 
-// const orderInfo = orderData.getOrderInfo();
-// console.log(orderInfo);
+appData.setFormField('address', '123 Main St');
+appData.setFormField('payment', 'online');
+
