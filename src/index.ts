@@ -1,138 +1,246 @@
 import { EventEmitter } from './components/base/events';
 import './scss/styles.scss';
 import { ProductData } from './components/ProductData';
-import { AppData } from './components/OrderData';
+import { AppData } from './components/AppData';
 import { LarekAPI } from './components/LarekAPI';
-import { API_URL, CDN_URL, settings } from './utils/constants';
+import { API_URL, CDN_URL } from './utils/constants';
+import { Card, CardPreview } from './components/Card';
+import { Page } from './components/Page';
+import { cloneTemplate, ensureElement } from './utils/utils';
+import { Modal } from './components/Modal';
+import { Basket, CardInBasket } from './components/Basket';
+import { OrderForm } from './components/OrderForm';
+import { ContactsForm } from './components/ContactsForm';
+import { Success } from './components/Success';
+import {
+	IBasketItem,
+	IOrderResult,
+	IProductItem,
+	TContactsInputs,
+	TOrderInputs,
+} from './types';
+
 
 const events = new EventEmitter();
-
 const api = new LarekAPI(CDN_URL, API_URL);
+
+const cardCatalogTemplate = ensureElement<HTMLTemplateElement>('#card-catalog');
+const cardPreviewTemplate = ensureElement<HTMLTemplateElement>('#card-preview');
+const cardBasketTemplate = ensureElement<HTMLTemplateElement>('#card-basket');
+const basketTemplate = ensureElement<HTMLTemplateElement>('#basket');
+const orderTemplate = ensureElement<HTMLTemplateElement>('#order');
+const contactsTemplate = ensureElement<HTMLTemplateElement>('#contacts');
+const successTemplate = ensureElement<HTMLTemplateElement>('#success');
+
 const productData = new ProductData({}, events);
 const appData = new AppData({}, events);
 
-const testCatalog = {
-    "total": 10,
-    "items": [
-        {
-            "id": "854cef69-976d-4c2a-a18c-2aa45046c390",
-            "description": "Если планируете решать задачи в тренажёре, берите два.",
-            "image": "/5_Dots.svg",
-            "title": "+1 час в сутках",
-            "category": "софт-скил",
-            "price": 750
-        },
-        {
-            "id": "c101ab44-ed99-4a54-990d-47aa2bb4e7d9",
-            "description": "Лизните этот леденец, чтобы мгновенно запоминать и узнавать любой цветовой код CSS.",
-            "image": "/Shell.svg",
-            "title": "HEX-леденец",
-            "category": "другое",
-            "price": 1450
-        },
-        {
-            "id": "b06cde61-912f-4663-9751-09956c0eed67",
-            "description": "Будет стоять над душой и не давать прокрастинировать.",
-            "image": "/Asterisk_2.svg",
-            "title": "Мамка-таймер",
-            "category": "софт-скил",
-            "price": null
-        },
-        {
-            "id": "412bcf81-7e75-4e70-bdb9-d3c73c9803b7",
-            "description": "Откройте эти куки, чтобы узнать, какой фреймворк вы должны изучить дальше.",
-            "image": "/Soft_Flower.svg",
-            "title": "Фреймворк куки судьбы",
-            "category": "дополнительное",
-            "price": 2500
-        },
-        {
-            "id": "1c521d84-c48d-48fa-8cfb-9d911fa515fd",
-            "description": "Если орёт кот, нажмите кнопку.",
-            "image": "/mute-cat.svg",
-            "title": "Кнопка «Замьютить кота»",
-            "category": "кнопка",
-            "price": 2000
-        },
-        {
-            "id": "f3867296-45c7-4603-bd34-29cea3a061d5",
-            "description": "Чтобы научиться правильно называть модификаторы, без этого не обойтись.",
-            "image": "Pill.svg",
-            "title": "БЭМ-пилюлька",
-            "category": "другое",
-            "price": 1500
-        },
-        {
-            "id": "54df7dcb-1213-4b3c-ab61-92ed5f845535",
-            "description": "Измените локацию для поиска работы.",
-            "image": "/Polygon.svg",
-            "title": "Портативный телепорт",
-            "category": "другое",
-            "price": 100000
-        },
-        {
-            "id": "6a834fb8-350a-440c-ab55-d0e9b959b6e3",
-            "description": "Даст время для изучения React, ООП и бэкенда",
-            "image": "/Butterfly.svg",
-            "title": "Микровселенная в кармане",
-            "category": "другое",
-            "price": 750
-        },
-        {
-            "id": "48e86fc0-ca99-4e13-b164-b98d65928b53",
-            "description": "Очень полезный навык для фронтендера. Без шуток.",
-            "image": "Leaf.svg",
-            "title": "UI/UX-карандаш",
-            "category": "хард-скил",
-            "price": 10000
-        },
-        {
-            "id": "90973ae5-285c-4b6f-a6d0-65d1d760b102",
-            "description": "Сжимайте мячик, чтобы снизить стресс от тем по бэкенду.",
-            "image": "/Mithosis.svg",
-            "title": "Бэкенд-антистресс",
-            "category": "другое",
-            "price": 1000
-        }
-    ]
-}
+const page = new Page(document.body, events);
+const modal = new Modal(ensureElement<HTMLElement>('#modal-container'), events);
 
-api.getProductList()
-    .then((products) => {
-        productData.catalog = products;
-        console.log(productData.catalog);
+const basket = new Basket(cloneTemplate(basketTemplate), events);
+const order = new OrderForm(cloneTemplate(orderTemplate), events);
+const contacts = new ContactsForm(cloneTemplate(contactsTemplate), events);
+const success = new Success(cloneTemplate(successTemplate), {
+	onClick: () => {
+		events.emit('modal:close'), modal.close();
+	},
+});
 
-        appData.removePricelessProductFromCart(productData.catalog);
-        if (!appData.checkBasket(productData.catalog)) {
-            console.error('Корзина пуста или сумма товаров равна 0.');
-            return;
-        }
-        
-        api.orderProducts(appData.getOrderInfo(productData.catalog))
-        
-            .then((result) => {
-                console.log('Заказ успешно оформлен:', result);
-    
-            appData.clearCart();
-            console.log('Корзина очищена.');
+api
+	.getProductList()
+	.then((products) => {
+		productData.catalog = products;
+	})
+	.catch((err) => {
+		console.error(err);
+	});
 
-        })
-        .catch((err) => {
-        console.error('Ошибка при оформлении заказа:', err);
-        });
-       
-    })
-    .catch(err => {
-        console.log(err);
-    });
+//Вывод каталога товаров
+events.on('catalog:changed', () => {
+	page.catalog = productData.catalog.map((item) => {
+		const card = new Card('card', cloneTemplate(cardCatalogTemplate), {
+			onClick: () => events.emit('preview:changed', item),
+		});
+		return card.render({
+			id: item.id,
+			title: item.title,
+			category: item.category,
+			image: item.image,
+			price: item.price,
+		});
+	});
+});
 
+//Открытие превью карточки
+events.on('preview:changed', (item: IProductItem) => {
+	const card = new CardPreview(cloneTemplate(cardPreviewTemplate), {
+		onClick: () => events.emit('item:add', item),
+	});
 
-appData.addItemToCart('c101ab44-ed99-4a54-990d-47aa2bb4e7d9');
-appData.addItemToCart('b06cde61-912f-4663-9751-09956c0eed67');
+	modal.render({
+		content: card.render({
+			id: item.id,
+			title: item.title,
+			category: item.category,
+			image: item.image,
+			price: item.price,
+			description: item.description,
+			isInBasket: item.isInBasket,
+		}),
+	});
+});
 
-appData.setFormField('email', 'example@example.com');
-appData.setFormField('phone', '+1234567890');
+// Добавление товара в корзину
+events.on('item:add', (item: IProductItem) => {
+	appData.addItemToBasket(item.id);
+	page.counter = appData.getItemCount();
+	item.isInBasket = true;
+	basket.enableButton();
+	modal.close();
+});
 
-appData.setFormField('address', '123 Main St');
-appData.setFormField('payment', 'online');
+//Открыть корзину
+events.on('basket:open', () => {
+	const list = appData.items.map((itemId, index) => {
+		const item = productData.getItem(itemId);
+		const newListItem = new CardInBasket(
+			'card',
+			cloneTemplate(cardBasketTemplate),
+			{ onClick: () => events.emit('item:remove', item) }
+		);
 
+		return newListItem.render({
+			index: index + 1,
+			title: item.title,
+			price: item.price,
+		});
+	});
+
+	const basketContent = {
+		items: list,
+		total: appData.calculateTotal(productData.catalog),
+	};
+
+	if (appData.calculateTotal(productData.catalog) === 0) {
+		basket.disableButton();
+	}
+	modal.render({ content: basket.render(basketContent) });
+});
+
+// Удалить из корзины
+events.on('item:remove', (item: IBasketItem) => {
+	appData.removeItemFromBasket(item.id);
+	item.isInBasket = false;
+	basket.total = appData.calculateTotal(productData.catalog);
+	page.counter = appData.getItemCount();
+	if (appData.calculateTotal(productData.catalog) === 0) {
+		basket.disableButton();
+	}
+	basket.indexReset();
+});
+
+//Оформить
+events.on('basket:order', () => {
+	modal.render({
+		content: order.render({
+			address: '',
+			valid: false,
+			errors: [],
+		}),
+	});
+});
+
+// Изменилось состояние валидации формы заказ
+events.on('orderFormErrors:change', (errors: Partial<TOrderInputs>) => {
+	const { payment, address } = errors;
+	order.valid = !(payment || address);
+	order.errors = [payment, address].filter((error) => error).join('; ');
+});
+
+//Изменилось одно из полей формы заказ
+events.on(
+	/^order\..*:change/,
+	(data: { field: keyof TOrderInputs; value: string }) => {
+		appData.setFormField(data.field, data.value);
+	}
+);
+
+// Изменилось состояние валидации формы контакты
+events.on('contactsFormErrors:change', (errors: Partial<TContactsInputs>) => {
+	const { phone, email } = errors;
+	contacts.valid = !(phone || email);
+	contacts.errors = [phone, email].filter((error) => error).join('; ');
+});
+
+// Изменилось одно из полей формы контакты
+events.on(
+	/^contacts\..*:change/,
+	(data: { field: keyof TContactsInputs; value: string }) => {
+		appData.setFormFieldContacts(data.field, data.value);
+	}
+);
+
+// Далее
+events.on('order:submit', () => {
+	const orderData = appData.getOrderInfo(productData.catalog);
+	orderData.total = appData.calculateTotal(productData.catalog);
+	orderData.items = appData.items;
+
+	modal.render({
+		content: contacts.render({
+			valid: false,
+			errors: [],
+		}),
+	});
+});
+
+// Отправка заказа
+events.on('contacts:submit', () => {
+	const removingProducts = appData.findIdPricelessProduct(productData.catalog);
+	removingProducts.forEach((item) => appData.removeItemFromBasket(item));
+
+	api
+		.orderProducts(appData.getOrderInfo(productData.catalog))
+		.then((response) => {
+			events.emit('order:success', response);
+			productData.catalog.forEach((item) => {
+				if (item) {
+					item.isInBasket = false;
+				}
+			});
+
+			appData.clearBasket();
+			appData._orderInfo = {
+				payment: '',
+				email: '',
+				phone: '',
+				address: '',
+			};
+			page.counter = 0;
+			order.reset();
+			contacts.reset();
+		})
+		.catch((err) => {
+			console.error(err);
+		});
+});
+
+// Успех
+events.on('order:success', (response: IOrderResult) => {
+	modal.render({
+		content: success.render({
+			description: response.total,
+		}),
+	});
+});
+
+// Блокируем прокрутку страницы если открыта модалка
+events.on('modal:open', () => {
+	page.locked = true;
+});
+
+// ... и разблокируем
+events.on('modal:close', () => {
+	page.locked = false;
+});
