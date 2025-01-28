@@ -9,7 +9,7 @@
 
 Важные файлы:
 - src/pages/index.html — HTML-файл главной страницы
-- src/types/index.ts — файл с типами
+- src/types/index.ts — файл с типамиу
 - src/index.ts — точка входа приложения
 - src/scss/styles.scss — корневой файл стилей
 - src/utils/constants.ts — файл с константами
@@ -100,14 +100,14 @@ export interface IOrderData {
 	clearBasket(): void;
 	calculateTotal(catalog: IProductItem[]): number;
 
-	checkOrderField(): boolean;
-	checkContsctsField(): boolean;
+	checkOrderFields(): boolean;
+	checkContactsFields(): boolean;
 	setFormField(field: keyof IOrderUserInfo, value: string):void;
 	setFormFieldContacts(field: keyof IOrderUserInfo, value: string):void;
 
 	getOrderInfo(catalog: IProductItem[]): IOrder;
 
-	findIdPricelessProduct(catalog: IProductItem[]): string[];
+	findPricelissProductsIds(catalog: IProductItem[]): string[];
 }
 ```
 Данные о заказе, отправляемые на сервер
@@ -207,8 +207,8 @@ orderErrors: TFormErrors = {} - ошибки
 - calculateTotal(catalog: IProductItem[]): number - подсчитать общую сумму товаров в корзине
 - setFormField(field: keyof IOrderUserInfo, value: string) - заполнение полей формы заказа
 - setFormFieldContacts(field: keyof IOrderUserInfo, value: string) - заполнение полей формы контактов
-- checkOrderField(): boolean - проверяет поля формы заказа
-- checkContsctsField(): boolean - проверяет поля формы контакты
+- checkOrderFields(): boolean - проверяет поля формы заказа
+- checkContactsFields(): boolean - проверяет поля формы контакты
 - getOrderInfo(catalog: IProductItem[]): IOrder  - возвращает информацию о заказе, включая данные пользователя, список товаров и общую сумму
 - findIdPricelessProduct(catalog: IProductItem[]): string[] - находит в корзине товары с нулевой ценой
 
@@ -302,7 +302,7 @@ constructor(container: HTMLElement, protected events: IEvents) Конструк�
 - set total - итоговая сумма
 - disableButton() - деактивирует кнопку оформить
 - enableButton() - активирует кнопку оформить
-- indexReset() - сбрасывает индексы товаров
+- resetIndexes() - сбрасывает индексы товаров
 
 ### Класс `OrderForm`
 Класс для отображения формы с выбором способа оплаты и адресом
