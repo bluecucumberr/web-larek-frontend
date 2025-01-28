@@ -137,7 +137,7 @@ events.on('item:remove', (item: IBasketItem) => {
 	if (appData.calculateTotal(productData.catalog) === 0) {
 		basket.disableButton();
 	}
-	basket.indexReset();
+	basket.resetIndexes();
 });
 
 //Оформить
@@ -197,7 +197,7 @@ events.on('order:submit', () => {
 
 // Отправка заказа
 events.on('contacts:submit', () => {
-	const removingProducts = appData.findIdPricelessProduct(productData.catalog);
+	const removingProducts = appData.findPricelissProductsIds(productData.catalog);
 	removingProducts.forEach((item) => appData.removeItemFromBasket(item));
 
 	api

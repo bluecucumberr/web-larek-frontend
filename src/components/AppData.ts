@@ -57,7 +57,7 @@ export class AppData extends Model<IAppData> {
 		this._orderInfo[field] = value.trim();
 		this.emitChanges('input:changed', this.orderInfo);
 
-		if (this.checkOrderField()) {
+		if (this.checkOrderFields()) {
 			this.emitChanges('orderForm:ready', this.orderInfo);
 		}
 	}
@@ -66,12 +66,12 @@ export class AppData extends Model<IAppData> {
 		this._orderInfo[field] = value.trim();
 		this.emitChanges('input:changed', this.orderInfo);
 
-		if (this.checkContsctsField()) {
+		if (this.checkContactsFields()) {
 			this.emitChanges('contactsForm:ready', this.orderInfo);
 		}
 	}
 
-	checkOrderField(): boolean {
+	checkOrderFields(): boolean {
 		const errors: typeof this.formErrors = {};
 
 		if (!this._orderInfo.payment) {
@@ -86,7 +86,7 @@ export class AppData extends Model<IAppData> {
 		return Object.keys(errors).length === 0;
 	}
 
-	checkContsctsField(): boolean {
+	checkContactsFields(): boolean {
 		const errors: typeof this.formErrors = {};
 
 		if (!this._orderInfo.phone) {
@@ -112,7 +112,7 @@ export class AppData extends Model<IAppData> {
 		};
 	}
 
-	findIdPricelessProduct(catalog: IProductItem[]): string[] {
+	findPricelissProductsIds(catalog: IProductItem[]): string[] {
 		const productsToRemove = this._items.filter((itemId) => {
 			const product = catalog.find((product) => product.id === itemId);
 			return product && product.price === null;

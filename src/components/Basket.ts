@@ -51,7 +51,7 @@ export class Basket extends Component<IBasketView> {
 		this.setText(this._total, formatNumber(total) + ' синапсов');
 	}
 
-	indexReset() {
+	resetIndexes() {
 		[...this._list.children].forEach((item, index) => {
 			const indexElement = item.querySelector<HTMLElement>(
 				'.basket__item-index'
